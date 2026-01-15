@@ -110,6 +110,66 @@ st.set_page_config(
 # Example: If user types a query, we need to remember it when button is clicked
 # Without session state, the query would be forgotten on rerun
 
+# ==============================================================================
+# AUTO-INITIALIZE CHROMADB (Streamlit Cloud Deployment Support)
+# ==============================================================================
+
+def check_and_build_chromadb():
+    """
+    Check if ChromaDB exists. If not, build it automatically.
+    This ensures Streamlit Cloud deployment works without manual setup.
+    """
+    from pathlib import Path
+    import subprocess
+    
+    chroma_path = Path(CHROMA_PERSIST_DIR)
+    
+    # Check if database exists and has content
+    if chroma_path.exists() and any(chroma_path.iterdir()):
+        return True  # Database ready
+    
+    # Database missing - build it
+    st.warning("⚠️ ChromaDB not found. Building vector database for first time...")
+    st.info("📚 This takes ~2 minutes on first deployment. Please wait...")
+    
+    try:
+        with st.spinner("Indexing ICICI documents... (2 minutes)"):
+            # Run the indexing script
+            result = subprocess.run(
+                ["python", "vectorstore/setup_chroma.py"],
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minute timeout
+            )
+            
+            if result.returncode == 0:
+                st.success("✅ ChromaDB initialized successfully!")
+                return True
+            else:
+                st.error(f"❌ Build failed: {result.stderr}")
+                st.code(result.stdout, language="text")
+                return False
+                
+    except subprocess.TimeoutExpired:
+        st.error("❌ Build timeout (>5 minutes). Check corpus size.")
+        return False
+    except Exception as e:
+        st.error(f"❌ Build error: {e}")
+        return False
+
+# Run ChromaDB check ONCE per session
+if 'chromadb_ready' not in st.session_state:
+    if check_and_build_chromadb():
+        st.session_state.chromadb_ready = True
+        st.rerun()  # Restart to load the new database
+    else:
+        st.error("Failed to initialize ChromaDB. Check logs and corpus/ folder.")
+        st.stop()
+
+# Now continue with existing supervisor initialization...
+
+
+
 if 'supervisor' not in st.session_state:
     # Check if 'supervisor' key exists in session state
     # If NOT (first time running), initialize it

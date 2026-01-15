@@ -1,23 +1,27 @@
+# # ==============================================================================
+# # .gitignore for ICICI HFC Multi-Agent AI System
+# # ==============================================================================
+# # This file tells Git which files/folders to IGNORE (not track in version control)
+# # Purpose: Avoid committing sensitive data, generated files, and dependencies
+# # ==============================================================================
+
 # ==============================================================================
-# .gitignore for ICICI HFC Multi-Agent AI System
-# ==============================================================================
-# This file tells Git which files/folders to IGNORE (not track in version control)
-# Purpose: Avoid committing sensitive data, generated files, and dependencies
+# .gitignore for TCS POC - Streamlit Cloud Compatible
 # ==============================================================================
 
 # ==============================================================================
-# 1. SENSITIVE DATA (API Keys, Credentials)
+# 1. SENSITIVE DATA - NEVER COMMIT
 # ==============================================================================
-
-# Config file with API keys (CRITICAL - Never commit!)
-# config.py
 
 # Environment files
 .env
 .env.local
 .env.*.local
 
-# Secret keys and credentials
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Secret keys
 secrets/
 *.key
 *.pem
@@ -27,186 +31,46 @@ credentials.json
 # 2. PYTHON GENERATED FILES
 # ==============================================================================
 
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
 # Distribution / packaging
-.Python
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-# db.sqlite3
-# db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# poetry
-poetry.lock
-
-# pdm
-.pdm.toml
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
+.eggs/
 
 # ==============================================================================
-# 3. AI/ML SPECIFIC FILES
+# 3. CHROMADB - AUTO-REBUILD ON DEPLOY
 # ==============================================================================
 
-# ChromaDB vector database (can be regenerated)
-# chroma_db/
-# vectorstore/chroma_db/
-# *.sqlite3
-
-# Large model files (download separately)
-models/
-*.bin
-*.pt
-*.pth
-*.h5
-*.onnx
-*.pkl
-*.joblib
-
-# Sentence transformer cache
-.cache/
-sentence_transformers/
-
-# Hugging Face cache
-transformers_cache/
-huggingface/
+# Ignore ChromaDB - will rebuild automatically on Streamlit Cloud
+vectorstore/chroma_db/
+chroma_db/
+*.sqlite3
+*.sqlite3-journal
 
 # ==============================================================================
-# 4. SYSTEM GENERATED FILES (Cache, Logs, Memory)
+# 4. RUNTIME DATA - AUTO-GENERATED
 # ==============================================================================
 
-# Cache directory
+# Cache (rebuilds automatically)
 cache/
 *.cache
 .cache/
 
-# Memory/conversation history (may contain user data)
+# Logs (generated at runtime)
+logs/
+*.log
+
+# Memory (session-specific)
 memory/
 conversations/
 session_*.json
 
-# Logs directory
-logs/
-*.log
-*.log.*
-
-# Feedback data
+# Feedback (user-generated)
 feedback/
 user_feedback/
 
@@ -214,7 +78,6 @@ user_feedback/
 tmp/
 temp/
 *.tmp
-*.temp
 
 # ==============================================================================
 # 5. OPERATING SYSTEM FILES
@@ -222,187 +85,455 @@ temp/
 
 # macOS
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
 ._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
 
 # Windows
 Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
 [Dd]esktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
 
 # Linux
 *~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
 
 # ==============================================================================
-# 6. IDE / EDITOR FILES
+# 6. IDE FILES
 # ==============================================================================
 
-# VSCode
 .vscode/
-*.code-workspace
-.history/
-
-# PyCharm / IntelliJ
 .idea/
-*.iml
-*.iws
-*.ipr
-out/
-
-# Sublime Text
 *.sublime-project
 *.sublime-workspace
 
-# Vim
-[._]*.s[a-v][a-z]
-[._]*.sw[a-p]
-[._]s[a-rt-v][a-z]
-[._]ss[a-gi-z]
-[._]sw[a-p]
-Session.vim
-Sessionx.vim
-.netrwhist
-tags
-[._]*.un~
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
-
 # ==============================================================================
-# 7. STREAMLIT SPECIFIC
+# 7. MODEL CACHE - AUTO-DOWNLOADS
 # ==============================================================================
 
-# Streamlit cache
-.streamlit/
-streamlit_cache/
-
-# Streamlit secrets (if using)
-.streamlit/secrets.toml
+# Sentence transformers (auto-downloads on first run)
+sentence_transformers/
+transformers_cache/
+huggingface/
 
 # ==============================================================================
-# 8. DATA FILES (Large or Sensitive)
+# KEEP THESE (IMPORTANT FOR DEPLOYMENT)
 # ==============================================================================
 
-# Large document corpus (if too big for repo)
-# corpus/
-# documents/
+# ✅ COMMIT these:
+# - All .py files (source code)
+# - corpus/ (document files)
+# - requirements.txt
+# - .streamlit/config.toml (non-secret config)
 
-# Processed data
-processed_data/
-data_cache/
-
-# User uploaded files
-uploads/
-user_files/
-
-# Database files
-# *.db
-# *.sqlite
-# *.sqlite3
+# ❌ NEVER COMMIT:
+# - .env, .streamlit/secrets.toml (secrets)
+# - vectorstore/chroma_db/ (corrupt/large database)
+# - cache/, logs/, memory/ (runtime data)
 
 # ==============================================================================
-# 9. BACKUP FILES
-# ==============================================================================
 
-# Backup files
-*.bak
-*.backup
-*.old
-*_backup
-*_old
-backup/
 
-# ==============================================================================
-# 10. MISCELLANEOUS
-# ==============================================================================
 
-# Compressed files (if auto-generated)
-*.zip
-*.tar
-*.tar.gz
-*.rar
-*.7z
 
-# Node modules (if using any JS tools)
-node_modules/
-package-lock.json
 
-# Test output
-test_output/
-test_results/
+# OLDER VERSION BELOW FOR REFERENCE
 
-# Coverage reports
-htmlcov/
 
-# ==============================================================================
-# EXCEPTIONS (Files to KEEP despite above rules)
-# ==============================================================================
+# # ==============================================================================
+# # 1. SENSITIVE DATA (API Keys, Credentials)
+# # ==============================================================================
 
-# Keep example config file (template without real keys)
-!config.example.py
-!config.template.py
+# # Config file with API keys (CRITICAL - Never commit!)
+# # config.py
 
-# Keep sample data for testing
-!corpus/sample.txt
-!test_data/
+# # Environment files
+# .env
+# .env.local
+# .env.*.local
 
-# Keep setup scripts
-!setup_chroma.py
-!index_icici_docs.py
+# # Secret keys and credentials
+# secrets/
+# *.key
+# *.pem
+# credentials.json
 
-# ==============================================================================
-# PROJECT-SPECIFIC NOTES
-# ==============================================================================
+# # ==============================================================================
+# # 2. PYTHON GENERATED FILES
+# # ==============================================================================
 
-# What you SHOULD commit:
-# ✅ Source code files (.py)
-# ✅ Requirements files (requirements.txt, requirements_streamlit.txt)
-# ✅ Documentation (README.md, research/*.md)
-# ✅ Corpus text files (if not too large)
-# ✅ Config template (without actual API keys)
+# # Byte-compiled / optimized / DLL files
+# __pycache__/
+# *.py[cod]
+# *$py.class
 
-# What you SHOULD NOT commit:
-# ❌ config.py (contains real API keys)
-# ❌ chroma_db/ (vector database - can regenerate)
-# ❌ cache/, memory/, logs/, feedback/ (runtime data)
-# ❌ __pycache__/ (Python bytecode)
-# ❌ .env files (environment variables)
+# # C extensions
+# *.so
 
-# ==============================================================================
-# END OF .gitignore
-# ==============================================================================
+# # Distribution / packaging
+# .Python
+# build/
+# develop-eggs/
+# dist/
+# downloads/
+# eggs/
+# .eggs/
+# lib/
+# lib64/
+# parts/
+# sdist/
+# var/
+# wheels/
+# share/python-wheels/
+# *.egg-info/
+# .installed.cfg
+# *.egg
+# MANIFEST
+
+# # PyInstaller
+# *.manifest
+# *.spec
+
+# # Unit test / coverage reports
+# htmlcov/
+# .tox/
+# .nox/
+# .coverage
+# .coverage.*
+# .cache
+# nosetests.xml
+# coverage.xml
+# *.cover
+# *.py,cover
+# .hypothesis/
+# .pytest_cache/
+# cover/
+
+# # Translations
+# *.mo
+# *.pot
+
+# # Django stuff:
+# *.log
+# local_settings.py
+# # db.sqlite3
+# # db.sqlite3-journal
+
+# # Flask stuff:
+# instance/
+# .webassets-cache
+
+# # Scrapy stuff:
+# .scrapy
+
+# # Sphinx documentation
+# docs/_build/
+
+# # PyBuilder
+# .pybuilder/
+# target/
+
+# # Jupyter Notebook
+# .ipynb_checkpoints
+
+# # IPython
+# profile_default/
+# ipython_config.py
+
+# # pyenv
+# .python-version
+
+# # pipenv
+# Pipfile.lock
+
+# # poetry
+# poetry.lock
+
+# # pdm
+# .pdm.toml
+
+# # PEP 582
+# __pypackages__/
+
+# # Celery stuff
+# celerybeat-schedule
+# celerybeat.pid
+
+# # SageMath parsed files
+# *.sage.py
+
+# # Environments
+# .env
+# .venv
+# env/
+# venv/
+# ENV/
+# env.bak/
+# venv.bak/
+
+# # Spyder project settings
+# .spyderproject
+# .spyproject
+
+# # Rope project settings
+# .ropeproject
+
+# # mkdocs documentation
+# /site
+
+# # mypy
+# .mypy_cache/
+# .dmypy.json
+# dmypy.json
+
+# # Pyre type checker
+# .pyre/
+
+# # pytype static type analyzer
+# .pytype/
+
+# # Cython debug symbols
+# cython_debug/
+
+# # ==============================================================================
+# # 3. AI/ML SPECIFIC FILES
+# # ==============================================================================
+
+# # ChromaDB vector database (can be regenerated)
+# # chroma_db/
+# # vectorstore/chroma_db/
+# # *.sqlite3
+
+# # Large model files (download separately)
+# models/
+# *.bin
+# *.pt
+# *.pth
+# *.h5
+# *.onnx
+# *.pkl
+# *.joblib
+
+# # Sentence transformer cache
+# .cache/
+# sentence_transformers/
+
+# # Hugging Face cache
+# transformers_cache/
+# huggingface/
+
+# # ==============================================================================
+# # 4. SYSTEM GENERATED FILES (Cache, Logs, Memory)
+# # ==============================================================================
+
+# # Cache directory
+# cache/
+# *.cache
+# .cache/
+
+# # Memory/conversation history (may contain user data)
+# memory/
+# conversations/
+# session_*.json
+
+# # Logs directory
+# logs/
+# *.log
+# *.log.*
+
+# # Feedback data
+# feedback/
+# user_feedback/
+
+# # Temporary files
+# tmp/
+# temp/
+# *.tmp
+# *.temp
+
+# # ==============================================================================
+# # 5. OPERATING SYSTEM FILES
+# # ==============================================================================
+
+# # macOS
+# .DS_Store
+# .AppleDouble
+# .LSOverride
+# Icon
+# ._*
+# .DocumentRevisions-V100
+# .fseventsd
+# .Spotlight-V100
+# .TemporaryItems
+# .Trashes
+# .VolumeIcon.icns
+# .com.apple.timemachine.donotpresent
+# .AppleDB
+# .AppleDesktop
+# Network Trash Folder
+# Temporary Items
+# .apdisk
+
+# # Windows
+# Thumbs.db
+# Thumbs.db:encryptable
+# ehthumbs.db
+# ehthumbs_vista.db
+# *.stackdump
+# [Dd]esktop.ini
+# $RECYCLE.BIN/
+# *.cab
+# *.msi
+# *.msix
+# *.msm
+# *.msp
+# *.lnk
+
+# # Linux
+# *~
+# .fuse_hidden*
+# .directory
+# .Trash-*
+# .nfs*
+
+# # ==============================================================================
+# # 6. IDE / EDITOR FILES
+# # ==============================================================================
+
+# # VSCode
+# .vscode/
+# *.code-workspace
+# .history/
+
+# # PyCharm / IntelliJ
+# .idea/
+# *.iml
+# *.iws
+# *.ipr
+# out/
+
+# # Sublime Text
+# *.sublime-project
+# *.sublime-workspace
+
+# # Vim
+# [._]*.s[a-v][a-z]
+# [._]*.sw[a-p]
+# [._]s[a-rt-v][a-z]
+# [._]ss[a-gi-z]
+# [._]sw[a-p]
+# Session.vim
+# Sessionx.vim
+# .netrwhist
+# tags
+# [._]*.un~
+
+# # Emacs
+# *~
+# \#*\#
+# /.emacs.desktop
+# /.emacs.desktop.lock
+# *.elc
+# auto-save-list
+# tramp
+# .\#*
+
+# # ==============================================================================
+# # 7. STREAMLIT SPECIFIC
+# # ==============================================================================
+
+# # Streamlit cache
+# .streamlit/
+# streamlit_cache/
+
+# # Streamlit secrets (if using)
+# .streamlit/secrets.toml
+
+# # ==============================================================================
+# # 8. DATA FILES (Large or Sensitive)
+# # ==============================================================================
+
+# # Large document corpus (if too big for repo)
+# # corpus/
+# # documents/
+
+# # Processed data
+# processed_data/
+# data_cache/
+
+# # User uploaded files
+# uploads/
+# user_files/
+
+# # Database files
+# # *.db
+# # *.sqlite
+# # *.sqlite3
+
+# # ==============================================================================
+# # 9. BACKUP FILES
+# # ==============================================================================
+
+# # Backup files
+# *.bak
+# *.backup
+# *.old
+# *_backup
+# *_old
+# backup/
+
+# # ==============================================================================
+# # 10. MISCELLANEOUS
+# # ==============================================================================
+
+# # Compressed files (if auto-generated)
+# *.zip
+# *.tar
+# *.tar.gz
+# *.rar
+# *.7z
+
+# # Node modules (if using any JS tools)
+# node_modules/
+# package-lock.json
+
+# # Test output
+# test_output/
+# test_results/
+
+# # Coverage reports
+# htmlcov/
+
+# # ==============================================================================
+# # EXCEPTIONS (Files to KEEP despite above rules)
+# # ==============================================================================
+
+# # Keep example config file (template without real keys)
+# !config.example.py
+# !config.template.py
+
+# # Keep sample data for testing
+# !corpus/sample.txt
+# !test_data/
+
+# # Keep setup scripts
+# !setup_chroma.py
+# !index_icici_docs.py
+
+# # ==============================================================================
+# # PROJECT-SPECIFIC NOTES
+# # ==============================================================================
+
+# # What you SHOULD commit:
+# # ✅ Source code files (.py)
+# # ✅ Requirements files (requirements.txt, requirements_streamlit.txt)
+# # ✅ Documentation (README.md, research/*.md)
+# # ✅ Corpus text files (if not too large)
+# # ✅ Config template (without actual API keys)
+
+# # What you SHOULD NOT commit:
+# # ❌ config.py (contains real API keys)
+# # ❌ chroma_db/ (vector database - can regenerate)
+# # ❌ cache/, memory/, logs/, feedback/ (runtime data)
+# # ❌ __pycache__/ (Python bytecode)
+# # ❌ .env files (environment variables)
+
+# # ==============================================================================
+# # END OF .gitignore
+# # ==============================================================================
