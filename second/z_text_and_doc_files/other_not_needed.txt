@@ -1,0 +1,1146 @@
+==========================================================================================================================================
+******************************************************* READ LINE 1210 VERY IMPORTANT ****************************************************
+==========================================================================================================================================
+
+
+
+
+
+
+
+# # # """
+# # # RAG Agent: Combines ChromaDB retrieval with LLM generation
+# # # Location: second/agents/rag_agent.py
+# # # """
+
+# # # from langchain_groq import ChatGroq
+# # # from langchain.prompts import ChatPromptTemplate
+# # # from langchain.schema.runnable import RunnablePassthrough
+# # # from langchain.schema.output_parser import StrOutputParser
+# # # from vectorstore.retriever import FinancialRetriever
+# # # from config import GROQ_API_KEY, GROQ_MODEL, BANKING_AGENT_TEMPERATURE
+# # # import warnings
+
+# # # warnings.filterwarnings('ignore')
+
+
+# # # class KnowledgeAgent:
+# # #     """RAG Agent for ICICI HFC Home Loan queries"""
+    
+# # #     def __init__(self):
+# # #         """Initialize RAG components"""
+# # #         print(" Initializing RAG Agent...")
+        
+# # #         # Initialize retriever
+# # #         self.retriever = FinancialRetriever()
+# # #         print(f" Retriever loaded: {self.retriever.collection.count()} chunks")
+        
+# # #         # Initialize LLM
+# # #         self.llm = ChatGroq(
+# # #             api_key=GROQ_API_KEY,
+# # #             model_name=GROQ_MODEL,
+# # #             temperature=BANKING_AGENT_TEMPERATURE
+# # #         )
+# # #         print(f" LLM initialized: {GROQ_MODEL}")
+        
+# # #         # Create RAG prompt template
+# # #         self.prompt = ChatPromptTemplate.from_template("""
+# # # You are an expert ICICI Home Finance customer service assistant. Answer the user's question based ONLY on the provided context.
+
+# # # **CONTEXT FROM ICICI HFC DOCUMENTS:**
+# # # {context}
+
+# # # **USER QUESTION:**
+# # # {question}
+
+# # # **INSTRUCTIONS:**
+# # # 1. Answer the question accurately using ONLY the information from the context above
+# # # 2. If the context doesn't contain enough information, say "I don't have specific information about that in the ICICI HFC documents"
+# # # 3. Be specific with numbers, rates, and requirements when available
+# # # 4. Format your answer in a clear, structured way
+# # # 5. If mentioning documents required, list them as bullet points
+# # # 6. Always mention this is for ICICI Home Finance Corporation (ICICI HFC)
+
+# # # **ANSWER:**
+# # # """)
+        
+# # #         print(" RAG Agent ready!\n")
+    
+    
+# # #     def format_context(self, retrieval_results):
+# # #         """Format retrieved chunks into context string"""
+# # #         contexts = []
+        
+# # #         for idx, (doc, metadata) in enumerate(zip(
+# # #             retrieval_results['documents'][0],
+# # #             retrieval_results['metadatas'][0]
+# # #         ), 1):
+# # #             source = metadata.get('source', 'Unknown')
+# # #             doc_type = metadata.get('doc_type', 'general')
+# # #             loan_type = metadata.get('loan_type', 'general')
+            
+# # #             contexts.append(
+# # #                 f"[Source {idx}: {source} - {doc_type}/{loan_type}]\n{doc}\n"
+# # #             )
+        
+# # #         return "\n---\n".join(contexts)
+    
+    
+# # #     def query(self, question, n_results=3, filters=None, return_sources=True):
+# # #         """
+# # #         Execute RAG query
+        
+# # #         Args:
+# # #             question: User's question
+# # #             n_results: Number of chunks to retrieve
+# # #             filters: Optional metadata filters
+# # #             return_sources: Whether to return source documents
+            
+# # #         Returns:
+# # #             dict with answer and optional sources
+# # #         """
+# # #         print(f"\n🔍 Query: {question}")
+# # #         print("=" * 70)
+        
+# # #         # Step 1: Retrieve relevant chunks
+# # #         print(f" Retrieving top {n_results} relevant chunks...")
+# # #         retrieval_results = self.retriever.retrieve(
+# # #             query=question,
+# # #             n_results=n_results,
+# # #             filters=filters
+# # #         )
+        
+# # #         if not retrieval_results['documents'][0]:
+# # #             return {
+# # #                 'answer': "I couldn't find any relevant information in the ICICI HFC documents.",
+# # #                 'sources': []
+# # #             }
+        
+# # #         # Step 2: Format context
+# # #         context = self.format_context(retrieval_results)
+# # #         print(f" Retrieved {len(retrieval_results['documents'][0])} chunks")
+        
+# # #         # Step 3: Generate answer with LLM
+# # #         print(" Generating answer with LLM...")
+        
+# # #         rag_chain = (
+# # #             {
+# # #                 "context": lambda x: context,
+# # #                 "question": RunnablePassthrough()
+# # #             }
+# # #             | self.prompt
+# # #             | self.llm
+# # #             | StrOutputParser()
+# # #         )
+        
+# # #         answer = rag_chain.invoke(question)
+        
+# # #         print(" Answer generated!\n")
+        
+# # #         # Prepare response
+# # #         response = {'answer': answer}
+        
+# # #         if return_sources:
+# # #             sources = []
+# # #             for doc, meta, dist in zip(
+# # #                 retrieval_results['documents'][0],
+# # #                 retrieval_results['metadatas'][0],
+# # #                 retrieval_results['distances'][0]
+# # #             ):
+# # #                 sources.append({
+# # #                     'source': meta.get('source', 'Unknown'),
+# # #                     'doc_type': meta.get('doc_type', 'general'),
+# # #                     'loan_type': meta.get('loan_type', 'general'),
+# # #                     'relevance': round((1 - dist) * 100, 2),
+# # #                     'preview': doc[:200] + "..."
+# # #                 })
+            
+# # #             response['sources'] = sources
+        
+# # #         return response
+    
+    
+# # #     def interactive_mode(self):
+# # #         """Run interactive Q&A session"""
+# # #         print("\n" + "=" * 70)
+# # #         print("🏠 ICICI HFC HOME LOAN ASSISTANT - INTERACTIVE MODE")
+# # #         print("=" * 70)
+# # #         print("Ask questions about ICICI home loans (type 'quit' to exit)\n")
+        
+# # #         while True:
+# # #             try:
+# # #                 question = input("\n💬 Your Question: ").strip()
+                
+# # #                 if question.lower() in ['quit', 'exit', 'q']:
+# # #                     print("\n👋 Thank you for using ICICI HFC Assistant!")
+# # #                     break
+                
+# # #                 if not question:
+# # #                     continue
+                
+# # #                 result = self.query(question, n_results=3)
+                
+# # #                 print("\n" + "=" * 70)
+# # #                 print(" ANSWER:")
+# # #                 print("=" * 70)
+# # #                 print(result['answer'])
+                
+# # #                 if result.get('sources'):
+# # #                     print("\n" + "-" * 70)
+# # #                     print(" SOURCES:")
+# # #                     print("-" * 70)
+# # #                     for idx, source in enumerate(result['sources'], 1):
+# # #                         print(f"\n{idx}. {source['source']} (Relevance: {source['relevance']}%)")
+# # #                         print(f"   Type: {source['doc_type']} | Loan: {source['loan_type']}")
+                
+# # #                 print("\n" + "=" * 70)
+                
+# # #             except KeyboardInterrupt:
+# # #                 print("\n\n👋 Goodbye!")
+# # #                 break
+# # #             except Exception as e:
+# # #                 print(f"\n❌ Error: {str(e)}")
+
+
+# # # if __name__ == "__main__":
+# # #     # Test the agent
+# # #     agent = KnowledgeAgent()
+    
+# # #     # Run interactive mode
+# # #     agent.interactive_mode()
+
+
+
+
+
+
+
+
+
+# # """
+# # RAG Agent: Combines ChromaDB retrieval with LLM generation
+# # Location: second/agents/rag_agent.py
+# # """
+
+# # from groq import Groq
+# # from vectorstore.retriever import FinancialRetriever
+# # from config import GROQ_API_KEY, GROQ_MODEL, BANKING_AGENT_TEMPERATURE
+# # import warnings
+
+# # warnings.filterwarnings('ignore')
+
+
+# # class KnowledgeAgent:
+# #     """RAG Agent for ICICI HFC Home Loan queries"""
+    
+# #     def __init__(self):
+# #         """Initialize RAG components"""
+# #         print(" Initializing RAG Agent...")
+        
+# #         # Initialize retriever
+# #         self.retriever = FinancialRetriever()
+# #         print(f" Retriever loaded: {self.retriever.collection.count()} chunks")
+        
+# #         # Initialize Groq client
+# #         self.client = Groq(api_key=GROQ_API_KEY)
+# #         self.model = GROQ_MODEL
+# #         self.temperature = BANKING_AGENT_TEMPERATURE
+        
+# #         print(f" LLM initialized: {GROQ_MODEL}")
+# #         print(" RAG Agent ready!\n")
+    
+    
+# #     def format_context(self, retrieval_results):
+# #         """Format retrieved chunks into context string"""
+# #         contexts = []
+        
+# #         for idx, (doc, metadata) in enumerate(zip(
+# #             retrieval_results['documents'][0],
+# #             retrieval_results['metadatas'][0]
+# #         ), 1):
+# #             source = metadata.get('source', 'Unknown')
+# #             doc_type = metadata.get('doc_type', 'general')
+# #             loan_type = metadata.get('loan_type', 'general')
+            
+# #             contexts.append(
+# #                 f"[Source {idx}: {source} - {doc_type}/{loan_type}]\n{doc}\n"
+# #             )
+        
+# #         return "\n---\n".join(contexts)
+    
+    
+# #     def generate_answer(self, question, context):
+# #         """Generate answer using Groq LLM"""
+        
+# #         prompt = f"""You are an expert ICICI Home Finance customer service assistant. Answer the user's question based ONLY on the provided context.
+
+# # **CONTEXT FROM ICICI HFC DOCUMENTS:**
+# # {context}
+
+# # **USER QUESTION:**
+# # {question}
+
+# # **INSTRUCTIONS:**
+# # 1. Answer the question accurately using ONLY the information from the context above
+# # 2. If the context doesn't contain enough information, say "I don't have specific information about that in the ICICI HFC documents"
+# # 3. Be specific with numbers, rates, and requirements when available
+# # 4. Format your answer in a clear, structured way
+# # 5. If mentioning documents required, list them as bullet points
+# # 6. Always mention this is for ICICI Home Finance Corporation (ICICI HFC)
+
+# # **ANSWER:**"""
+
+# #         # Call Groq API
+# #         chat_completion = self.client.chat.completions.create(
+# #             messages=[
+# #                 {
+# #                     "role": "system",
+# #                     "content": "You are an expert ICICI Home Finance customer service assistant."
+# #                 },
+# #                 {
+# #                     "role": "user",
+# #                     "content": prompt
+# #                 }
+# #             ],
+# #             model=self.model,
+# #             temperature=self.temperature,
+# #             max_tokens=1024
+# #         )
+        
+# #         return chat_completion.choices[0].message.content
+    
+    
+# #     def query(self, question, n_results=3, filters=None, return_sources=True):
+# #         """
+# #         Execute RAG query
+        
+# #         Args:
+# #             question: User's question
+# #             n_results: Number of chunks to retrieve
+# #             filters: Optional metadata filters
+# #             return_sources: Whether to return source documents
+            
+# #         Returns:
+# #             dict with answer and optional sources
+# #         """
+# #         # Step 1: Retrieve relevant chunks
+# #         retrieval_results = self.retriever.retrieve(
+# #             query=question,
+# #             n_results=n_results,
+# #             filters=filters
+# #         )
+        
+# #         if not retrieval_results['documents'][0]:
+# #             return {
+# #                 'answer': "I couldn't find any relevant information in the ICICI HFC documents.",
+# #                 'sources': []
+# #             }
+        
+# #         # Step 2: Format context
+# #         context = self.format_context(retrieval_results)
+        
+# #         # Step 3: Generate answer with LLM
+# #         answer = self.generate_answer(question, context)
+        
+# #         # Prepare response
+# #         response = {'answer': answer}
+        
+# #         if return_sources:
+# #             sources = []
+# #             for doc, meta, dist in zip(
+# #                 retrieval_results['documents'][0],
+# #                 retrieval_results['metadatas'][0],
+# #                 retrieval_results['distances'][0]
+# #             ):
+# #                 sources.append({
+# #                     'source': meta.get('source', 'Unknown'),
+# #                     'doc_type': meta.get('doc_type', 'general'),
+# #                     'loan_type': meta.get('loan_type', 'general'),
+# #                     'relevance': round((1 - dist) * 100, 2),
+# #                     'preview': doc[:200] + "..."
+# #                 })
+            
+# #             response['sources'] = sources
+        
+# #         return response
+
+
+# # if __name__ == "__main__":
+# #     # Quick test
+# #     agent = KnowledgeAgent()
+# #     result = agent.query("What documents are needed for salaried home loan?")
+# #     print("\n ANSWER:")
+# #     print(result['answer'])
+# #     print("\n SOURCES:")
+# #     for i, src in enumerate(result['sources'], 1):
+# #         print(f"{i}. {src['source']} ({src['relevance']}%)")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# """
+# RAG Agent: Combines ChromaDB retrieval with LLM generation
+# Location: second/agents/rag_agent.py
+# """
+
+# from groq import Groq
+# from vectorstore.retriever import FinancialRetriever
+# from config import GROQ_API_KEY, GROQ_MODEL, BANKING_AGENT_TEMPERATURE
+# import warnings
+
+# warnings.filterwarnings('ignore')
+
+
+# class KnowledgeAgent:
+#     """RAG Agent for ICICI HFC Home Loan queries"""
+    
+#     def __init__(self):
+#         """Initialize RAG components"""
+#         print(" Initializing RAG Agent...")
+        
+#         # Initialize retriever
+#         self.retriever = FinancialRetriever()
+#         print(f" Retriever loaded: {self.retriever.collection.count()} chunks")
+        
+#         # Initialize Groq client
+#         self.client = Groq(api_key=GROQ_API_KEY)
+#         self.model = GROQ_MODEL
+#         self.temperature = BANKING_AGENT_TEMPERATURE
+        
+#         print(f" LLM initialized: {GROQ_MODEL}")
+#         print(" RAG Agent ready!\n")
+    
+    
+#     def format_context(self, retrieval_results):
+#         """Format retrieved chunks into context string"""
+#         contexts = []
+        
+#         for idx, (doc, metadata) in enumerate(zip(
+#             retrieval_results['documents'][0],
+#             retrieval_results['metadatas'][0]
+#         ), 1):
+#             source = metadata.get('source', 'Unknown')
+#             doc_type = metadata.get('doc_type', 'general')
+#             loan_type = metadata.get('loan_type', 'general')
+            
+#             contexts.append(
+#                 f"[Source {idx}: {source} - {doc_type}/{loan_type}]\n{doc}\n"
+#             )
+        
+#         return "\n---\n".join(contexts)
+    
+    
+#     def generate_answer(self, question, context):
+#         """Generate answer using Groq LLM"""
+        
+#         prompt = f"""You are an expert ICICI Home Finance customer service assistant. Answer the user's question based ONLY on the provided context.
+
+# **CONTEXT FROM ICICI HFC DOCUMENTS:**
+# {context}
+
+# **USER QUESTION:**
+# {question}
+
+# **INSTRUCTIONS:**
+# 1. Answer the question accurately using ONLY the information from the context above
+# 2. If the context doesn't contain enough information, say "I don't have specific information about that in the ICICI HFC documents"
+# 3. Be specific with numbers, rates, and requirements when available
+# 4. Format your answer in a clear, structured way
+# 5. If mentioning documents required, list them as bullet points
+# 6. Always mention this is for ICICI Home Finance Corporation (ICICI HFC)
+
+# **ANSWER:**"""
+
+#         # Call Groq API
+#         chat_completion = self.client.chat.completions.create(
+#             messages=[
+#                 {
+#                     "role": "system",
+#                     "content": "You are an expert ICICI Home Finance customer service assistant."
+#                 },
+#                 {
+#                     "role": "user",
+#                     "content": prompt
+#                 }
+#             ],
+#             model=self.model,
+#             temperature=self.temperature,
+#             max_tokens=1024
+#         )
+        
+#         return chat_completion.choices[0].message.content
+    
+    
+#     def query(self, question, n_results=3, filters=None, return_sources=True):
+#         """
+#         Execute RAG query
+        
+#         Args:
+#             question: User's question
+#             n_results: Number of chunks to retrieve
+#             filters: Optional metadata filters (dict) - converted to where_filters
+#             return_sources: Whether to return source documents
+            
+#         Returns:
+#             dict with answer and optional sources
+#         """
+#         # Convert filters dict to where_filters format if provided
+#         where_filters = None
+#         if filters:
+#             where_filters = filters
+        
+#         # Step 1: Retrieve relevant chunks using correct parameter name
+#         retrieval_results = self.retriever.retrieve(
+#             query=question,
+#             n_results=n_results,
+#             where_filters=where_filters  #  CORRECT PARAMETER NAME
+#         )
+        
+#         if not retrieval_results['documents'][0]:
+#             return {
+#                 'answer': "I couldn't find any relevant information in the ICICI HFC documents.",
+#                 'sources': []
+#             }
+        
+#         # Step 2: Format context
+#         context = self.format_context(retrieval_results)
+        
+#         # Step 3: Generate answer with LLM
+#         answer = self.generate_answer(question, context)
+        
+#         # Prepare response
+#         response = {'answer': answer}
+        
+#         if return_sources:
+#             sources = []
+#             for doc, meta, dist in zip(
+#                 retrieval_results['documents'][0],
+#                 retrieval_results['metadatas'][0],
+#                 retrieval_results['distances'][0]
+#             ):
+#                 sources.append({
+#                     'source': meta.get('source', 'Unknown'),
+#                     'doc_type': meta.get('doc_type', 'general'),
+#                     'loan_type': meta.get('loan_type', 'general'),
+#                     'relevance': round((1 - dist) * 100, 2),
+#                     'preview': doc[:200] + "..."
+#                 })
+            
+#             response['sources'] = sources
+        
+#         return response
+
+
+# if __name__ == "__main__":
+#     # Quick test
+#     agent = KnowledgeAgent()
+#     result = agent.query("What documents are needed for salaried home loan?")
+#     print("\n ANSWER:")
+#     print(result['answer'])
+#     print("\n SOURCES:")
+#     for i, src in enumerate(result['sources'], 1):
+#         print(f"{i}. {src['source']} ({src['relevance']}%)")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # vectorstore/retriever.py
+# # Import the chromadb library for vector database operations
+# import chromadb
+# # Import SentenceTransformer for generating embeddings from queries
+# from sentence_transformers import SentenceTransformer
+# # Import List, Dict, Optional for type hinting
+# from typing import List, Dict, Optional
+# # Import Path from pathlib for file path manipulations
+# from pathlib import Path
+# # Import sys to manipulate the Python path
+# import sys
+
+# # Add the parent directory of this file to the system path so config.py can be imported
+# sys.path.append(str(Path(__file__).parent.parent))
+# # Import configuration variables from config.py
+# from config import (
+#     CHROMA_PERSIST_DIR,    # Directory where ChromaDB persists data
+#     EMBEDDING_MODEL,       # Name of the embedding model to use
+#     BANKING_COLLECTION,    # Name of the banking collection in ChromaDB
+#     MARKETING_COLLECTION   # Name of the marketing collection in ChromaDB
+# )
+
+
+# class KnowledgeRetriever:
+#     """
+#     Retrieval interface for agents to query ChromaDB.
+    
+#     Responsibilities:
+#     - Search banking/marketing collections
+#     - Filter by metadata (bank, product)
+#     - Format results for agent consumption
+#     - Handle errors gracefully
+    
+#     This is the PRIMARY interface between agents and knowledge base.
+#     """
+    
+#     def __init__(self):
+#         """
+#         Initialize retriever with ChromaDB connection.
+        
+#         Loads:
+#         - Existing ChromaDB instance
+#         - Embedding model (for query vectorization)
+#         - Both collections (banking & marketing)
+#         """
+#         # Print initialization message
+#         print("🔍 Initializing Knowledge Retriever...")
+        
+#         # Connect to ChromaDB using the persistent directory
+#         self.client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
+        
+#         # Load the sentence transformer embedding model
+#         self.embedding_model = SentenceTransformer(EMBEDDING_MODEL)
+        
+#         # Try to get the banking collection from ChromaDB
+#         try:
+#             self.banking_collection = self.client.get_collection(
+#                 name=BANKING_COLLECTION,
+#                 embedding_function=self._create_embedding_function()
+#             )
+#             # Print the number of documents in the banking collection
+#             print(f" Banking collection: {self.banking_collection.count()} documents")
+#         except Exception as e:
+#             # Print warning if banking collection is not found
+#             print(f"⚠️  Banking collection not found: {e}")
+#             self.banking_collection = None
+        
+#         # Try to get the marketing collection from ChromaDB
+#         try:
+#             self.marketing_collection = self.client.get_collection(
+#                 name=MARKETING_COLLECTION,
+#                 embedding_function=self._create_embedding_function()
+#             )
+#             # Print the number of documents in the marketing collection
+#             print(f" Marketing collection: {self.marketing_collection.count()} documents")
+#         except Exception as e:
+#             # Print warning if marketing collection is not found
+#             print(f"⚠️  Marketing collection not found: {e}")
+#             self.marketing_collection = None
+        
+#         # Print ready message
+#         print(" Retriever ready!\n")
+    
+    
+#     def _create_embedding_function(self):
+#         """
+#         Create embedding function for ChromaDB.
+        
+#         Must match the function used during indexing (document_processor.py).
+#         Using different embedding model = queries won't work!
+        
+#         Returns:
+#             callable: Embedding function
+#         """
+#         # Define a function that takes a list of texts and returns their embeddings as lists
+#         def embed_function(texts):
+#             embeddings = self.embedding_model.encode(texts) # Generate embeddings
+#             return embeddings.tolist() # Convert numpy array to list
+#         return embed_function # Return the embedding function
+    
+    
+#     def search_banking(
+#         self,
+#         query: str,
+#         n_results: int = 5,
+#         filter_metadata: Optional[Dict] = None
+#     ) -> List[Dict]:
+#         """
+#         Search banking products collection.
+        
+#         Args:
+#             query (str): Natural language question
+#             n_results (int): Number of results to return
+#             filter_metadata (Dict): Metadata filters, e.g., {"bank": "ICICI"}
+            
+#         Returns:
+#             List[Dict]: Formatted results with content, source, and score
+            
+#         Example:
+#             results = retriever.search_banking(
+#                 query="home loan interest rate",
+#                 n_results=3,
+#                 filter_metadata={"bank": "ICICI"}
+#             )
+#         """
+#         # If banking collection is not available, print error and return empty list
+#         if not self.banking_collection:
+#             print("❌ Banking collection not available")
+#             return []
+        
+#         # Call the internal search method for the banking collection
+#         return self._search_collection(
+#             collection=self.banking_collection,
+#             query=query,
+#             n_results=n_results,
+#             filter_metadata=filter_metadata
+#         )
+    
+    
+#     def search_marketing(
+#         self,
+#         query: str,
+#         n_results: int = 5,
+#         filter_metadata: Optional[Dict] = None
+#     ) -> List[Dict]:
+#         """
+#         Search marketing campaigns collection.
+        
+#         Args:
+#             query (str): Natural language question
+#             n_results (int): Number of results to return
+#             filter_metadata (Dict): Metadata filters
+            
+#         Returns:
+#             List[Dict]: Formatted results
+            
+#         Example:
+#             results = retriever.search_marketing(
+#                 query="millennial marketing strategy",
+#                 n_results=5
+#             )
+#         """
+#         # If marketing collection is not available, print error and return empty list
+#         if not self.marketing_collection:
+#             print("❌ Marketing collection not available")
+#             return []
+        
+#         # Call the internal search method for the marketing collection
+#         return self._search_collection(
+#             collection=self.marketing_collection,
+#             query=query,
+#             n_results=n_results,
+#             filter_metadata=filter_metadata
+#         )
+    
+    
+#     def _search_collection(
+#         self,
+#         collection,
+#         query: str,
+#         n_results: int = 5,
+#         filter_metadata: Optional[Dict] = None
+#     ) -> List[Dict]:
+#         """
+#         Internal method to search any collection.
+        
+#         Args:
+#             collection: ChromaDB collection object
+#             query (str): Search query
+#             n_results (int): Top-K results
+#             filter_metadata (Dict): Optional filters
+            
+#         Returns:
+#             List[Dict]: Structured results
+            
+#         Process:
+#         1. Convert query to vector (via embedding function)
+#         2. Perform similarity search in ChromaDB
+#         3. Apply metadata filters if provided
+#         4. Format results for agent consumption
+#         """
+#         try:
+#             # Perform vector search in the collection
+#             results = collection.query(
+#                 query_texts=[query],
+#                 n_results=n_results,
+#                 where=filter_metadata  # Metadata filtering (e.g., bank="ICICI")
+#             )
+            
+#             # Prepare a list to hold formatted results
+#             formatted_results = []
+            
+#             # If no results are found, print info and return empty list
+#             if not results['documents'] or not results['documents'][0]:
+#                 print(f"ℹ️  No results found for query: '{query}'")
+#                 return []
+            
+#             # Loop through each result and format it
+#             for idx in range(len(results['documents'][0])):
+#                 formatted_results.append({
+#                     'content': results['documents'][0][idx], # The retrieved chunk
+#                     'metadata': results['metadatas'][0][idx], # Metadata for the chunk
+#                     'distance': results['distances'][0][idx], # Distance (lower is better)
+#                     'similarity_score': round(1 - results['distances'][0][idx], 3), # Similarity score (higher is better)
+#                     'id': results['ids'][0][idx] # Unique ID of the chunk
+#                 })
+            
+#             # Return the list of formatted results
+#             return formatted_results
+            
+#         except Exception as e:
+#             # Print error if search fails
+#             print(f"❌ Error during search: {e}")
+#             return []
+    
+    
+#     def search_all(
+#         self,
+#         query: str,
+#         n_results_per_collection: int = 3
+#     ) -> Dict[str, List[Dict]]:
+#         """
+#         Search both banking and marketing collections.
+        
+#         Useful when agent isn't sure which domain to search.
+        
+#         Args:
+#             query (str): Search query
+#             n_results_per_collection (int): Results per collection
+            
+#         Returns:
+#             Dict with results from both collections
+            
+#         Example:
+#             results = retriever.search_all("customer engagement strategy")
+#             # Returns:
+#             # {
+#             #   'banking': [...],
+#             #   'marketing': [...]
+#             # }
+#         """
+#         # Return a dictionary with results from both collections
+#         return {
+#             'banking': self.search_banking(query, n_results_per_collection),
+#             'marketing': self.search_marketing(query, n_results_per_collection)
+#         }
+    
+    
+#     def get_context_for_agent(
+#         self,
+#         query: str,
+#         collection_type: str = "banking",
+#         n_results: int = 3
+#     ) -> str:
+#         """
+#         Get formatted context string for LLM prompts.
+        
+#         Agents need context in specific format for LLM consumption.
+#         This method returns ready-to-use context string.
+        
+#         Args:
+#             query (str): User question
+#             collection_type (str): "banking" or "marketing"
+#             n_results (int): Number of context chunks
+            
+#         Returns:
+#             str: Formatted context string
+            
+#         Format:
+#             "Context 1 (Source: icici_homeloan.pdf, Relevance: 89%):
+#             [content here]
+            
+#             Context 2 (Source: sbi_loans.pdf, Relevance: 85%):
+#             [content here]"
+#         """
+#         # Search the appropriate collection based on collection_type
+#         if collection_type == "banking":
+#             results = self.search_banking(query, n_results)
+#         elif collection_type == "marketing":
+#             results = self.search_marketing(query, n_results)
+#         else:
+#             # Print warning if collection type is unknown
+#             print(f"⚠️  Unknown collection type: {collection_type}")
+#             return ""
+        
+#         # If no results, return a message
+#         if not results:
+#             return "No relevant information found in knowledge base."
+        
+#         # Prepare a list to hold context parts
+#         context_parts = []
+#         # Loop through each result and format it for LLM
+#         for idx, result in enumerate(results, start=1):
+#             source = result['metadata'].get('source', 'unknown') # Get source filename
+#             score = result['similarity_score'] # Get similarity score
+#             content = result['content'] # Get content
+            
+#             # Format the context string for this result
+#             context_parts.append(
+#                 f"Context {idx} (Source: {source}, Relevance: {score*100:.0f}%):\n{content}"
+#             )
+        
+#         # Join all context parts with double newlines and return
+#         return "\n\n".join(context_parts)
+    
+    
+#     def get_collection_stats(self) -> Dict:
+#         """
+#         Get statistics about collections.
+        
+#         Useful for:
+#         - Debugging
+#         - Monitoring knowledge base size
+#         - Demo purposes (show mentor how much data you have)
+        
+#         Returns:
+#             Dict with collection statistics
+#         """
+#         # Initialize stats dictionary for both collections
+#         stats = {
+#             'banking': {
+#                 'total_documents': 0,
+#                 'available': False
+#             },
+#             'marketing': {
+#                 'total_documents': 0,
+#                 'available': False
+#             }
+#         }
+        
+#         # If banking collection is available, update stats
+#         if self.banking_collection:
+#             stats['banking']['total_documents'] = self.banking_collection.count()
+#             stats['banking']['available'] = True
+        
+#         # If marketing collection is available, update stats
+#         if self.marketing_collection:
+#             stats['marketing']['total_documents'] = self.marketing_collection.count()
+#             stats['marketing']['available'] = True
+        
+#         # Return the stats dictionary
+#         return stats
+
+
+# class FinancialRetriever:
+#     """
+#     Simplified retriever specifically for ICICI HFC documents.
+#     Compatible with validate.py script.
+#     """
+    
+#     def __init__(self):
+#         """Initialize retriever with banking collection."""
+#         print("🔍 Initializing Financial Retriever...")
+        
+#         # Connect to ChromaDB
+#         self.client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
+        
+#         # Load embedding model
+#         self.embedding_model = SentenceTransformer(EMBEDDING_MODEL)
+        
+#         # Get banking collection
+#         try:
+#             self.collection = self.client.get_collection(
+#                 name=BANKING_COLLECTION,
+#                 embedding_function=self._create_embedding_function()
+#             )
+#             print(f" Collection loaded: {self.collection.count()} chunks")
+#         except Exception as e:
+#             print(f"❌ Error loading collection: {e}")
+#             raise
+    
+#     def _create_embedding_function(self):
+#         """Create embedding function for ChromaDB."""
+#         def embed_function(texts):
+#             embeddings = self.embedding_model.encode(texts)
+#             return embeddings.tolist()
+#         return embed_function
+    
+#     def retrieve(self, query: str, n_results: int = 5, filter_metadata: Optional[Dict] = None):
+#         """
+#         Retrieve documents matching the query.
+        
+#         Args:
+#             query (str): Search query
+#             n_results (int): Number of results to return
+#             filter_metadata (Dict): Optional metadata filters
+            
+#         Returns:
+#             Dict with 'documents', 'metadatas', 'distances', 'ids'
+#         """
+#         try:
+#             results = self.collection.query(
+#                 query_texts=[query],
+#                 n_results=n_results,
+#                 where=filter_metadata
+#             )
+#             return results
+#         except Exception as e:
+#             print(f"❌ Error during retrieval: {e}")
+#             return {
+#                 'documents': [[]],
+#                 'metadatas': [[]],
+#                 'distances': [[]],
+#                 'ids': [[]]
+#             }
+
+
+# # Main function for demo usage
+# def main():
+#     """
+#     Demo: Test retriever functionality.
+    
+#     This shows how agents will use the retriever.
+#     """
+#     # Print demo mode message
+#     print("🎯 Knowledge Retriever - Demo Mode\n")
+    
+#     # Create a KnowledgeRetriever instance
+#     retriever = KnowledgeRetriever()
+    
+#     # Get collection statistics
+#     stats = retriever.get_collection_stats()
+#     print("\n Collection Statistics:")
+#     print(f"Banking: {stats['banking']['total_documents']} documents")
+#     print(f"Marketing: {stats['marketing']['total_documents']} documents")
+    
+#     # If banking collection has documents, test search
+#     if stats['banking']['total_documents'] > 0:
+#         print("\n" + "="*60)
+#         print("🧪 Testing Banking Search")
+#         print("="*60)
+        
+#         test_query = "home loan interest rate" # Example query
+#         print(f"\nQuery: '{test_query}'\n")
+        
+#         results = retriever.search_banking(test_query, n_results=3)
+        
+#         # If results are found, print them
+#         if results:
+#             for idx, result in enumerate(results, start=1):
+#                 print(f"\n--- Result {idx} ---")
+#                 print(f"Similarity: {result['similarity_score']*100:.1f}%")
+#                 print(f"Source: {result['metadata'].get('source', 'unknown')}")
+#                 print(f"Content: {result['content'][:200]}...")
+#         else:
+#             # Print if no results are found
+#             print("No results found.")
+        
+#         # Test context formatting for agents
+#         print("\n" + "="*60)
+#         print("📝 Testing Context Formatting for Agents")
+#         print("="*60)
+        
+#         context = retriever.get_context_for_agent(test_query, n_results=2)
+#         print(f"\n{context}")
+    
+#     else:
+#         # Print instructions if no documents are found
+#         print("\n⚠️  No documents in collections yet.")
+#         print("📌 Next steps:")
+#         print("1. Download banking PDFs")
+#         print("2. Run document_processor.py to ingest them")
+#         print("3. Re-run this retriever demo to test searches")
+
+
+# # If this script is run directly, call main()
+# if __name__ == "__main__":
+#     main()

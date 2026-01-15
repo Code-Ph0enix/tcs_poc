@@ -1,0 +1,83 @@
+# ==============================================================================
+# STREAMLIT APP ADDITIONAL REQUIREMENTS
+# ==============================================================================
+# 
+# Purpose: These are EXTRA packages needed specifically for the Streamlit demo
+#          application. Install these ON TOP OF your existing requirements.txt
+#
+# Installation:
+#   pip install -r requirements_streamlit.txt
+#
+# Note: This assumes you already have the core packages from requirements.txt:
+#       - groq
+#       - chromadb
+#       - sentence-transformers
+#       - langchain
+#       - etc.
+#
+# ==============================================================================
+
+# -----------------------------------------------------------------------------
+# WEB FRAMEWORK
+# -----------------------------------------------------------------------------
+
+streamlit>=1.31.0
+# The main web framework for creating interactive dashboards
+# Version 1.31.0+ has the latest features like tabs, metrics, etc.
+# streamlit is what turns Python code into a web app
+
+# -----------------------------------------------------------------------------
+# DATA MANIPULATION & VISUALIZATION
+# -----------------------------------------------------------------------------
+
+pandas>=2.0.0
+# For working with tabular data (like Excel in Python)
+# Used to create tables and organize data for charts
+# Example: creating DataFrames from query logs
+
+plotly>=5.18.0
+# For creating interactive charts and graphs
+# Much better than matplotlib for web apps because users can:
+# - Hover over data points
+# - Zoom in/out
+# - Download charts as images
+# We use it for bar charts, pie charts, line graphs, etc.
+
+# -----------------------------------------------------------------------------
+# ADDITIONAL UTILITIES
+# -----------------------------------------------------------------------------
+
+python-dateutil>=2.8.2
+# Helper for working with dates and times
+# Makes it easier to format timestamps like "2:30 PM"
+# Already installed with most setups, but good to specify
+
+# -----------------------------------------------------------------------------
+# OPTIONAL BUT RECOMMENDED
+# -----------------------------------------------------------------------------
+
+watchdog>=3.0.0
+# Monitors file changes for Streamlit auto-reload
+# When you edit code, Streamlit automatically refreshes
+# Makes development faster
+
+# -----------------------------------------------------------------------------
+# NOTES ON INSTALLATION
+# -----------------------------------------------------------------------------
+#
+# If you encounter conflicts:
+# 1. Create a fresh virtual environment:
+#    python -m venv streamlit_env
+#    source streamlit_env/bin/activate  # On Windows: streamlit_env\Scripts\activate
+#
+# 2. Install core requirements first:
+#    pip install -r requirements.txt
+#
+# 3. Then install Streamlit requirements:
+#    pip install -r requirements_streamlit.txt
+#
+# 4. Verify installation:
+#    streamlit --version
+#    python -c "import plotly; print(plotly.__version__)"
+#
+# ==============================================================================
