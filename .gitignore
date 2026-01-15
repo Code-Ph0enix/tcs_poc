@@ -81,8 +81,8 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# db.sqlite3
+# db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -165,9 +165,9 @@ cython_debug/
 # ==============================================================================
 
 # ChromaDB vector database (can be regenerated)
-chroma_db/
-vectorstore/chroma_db/
-*.sqlite3
+# chroma_db/
+# vectorstore/chroma_db/
+# *.sqlite3
 
 # Large model files (download separately)
 models/
@@ -331,9 +331,9 @@ uploads/
 user_files/
 
 # Database files
-*.db
-*.sqlite
-*.sqlite3
+# *.db
+# *.sqlite
+# *.sqlite3
 
 # ==============================================================================
 # 9. BACKUP FILES
