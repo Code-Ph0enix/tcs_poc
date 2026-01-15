@@ -1,6 +1,6 @@
 """
 Step 6: Index ICICI HFC .txt documents into ChromaDB
-Location: second/index_icici_docs.py
+Location: tcs_poc/index_icici_docs.py
 
 SAVES IT TO:
 Folder: ChromaDB persist directory (as defined in config)

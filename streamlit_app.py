@@ -9,7 +9,7 @@ Purpose: This is the MAIN file that runs your entire Streamlit web application.
          2. Story Demo - Watch how agents work together (storyboarding)
          3. Analytics Dashboard - See system performance metrics
 
-Location: second/streamlit_app.py
+Location: tcs_poc/streamlit_app.py
 
 How to run: streamlit run streamlit_app.py
 

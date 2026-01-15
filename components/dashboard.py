@@ -7,7 +7,7 @@ Purpose: This file creates the "Analytics Dashboard" tab that shows real-time
          metrics and system performance data. It's like a "control panel" that
          shows how well your AI system is working.
 
-Location: second/components/dashboard.py
+Location: tcs_poc/components/dashboard.py
 
 Called by: streamlit_app.py when "Analytics Dashboard" tab is selected
 

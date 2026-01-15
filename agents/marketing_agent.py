@@ -1,6 +1,6 @@
 """
 Marketing Campaign Agent
-Location: second/agents/marketing_agent.py
+Location: tcs_poc/agents/marketing_agent.py
 Generates marketing campaigns based on banking product data
 
 No direct file output

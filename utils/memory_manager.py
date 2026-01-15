@@ -1,6 +1,6 @@
 """
 Conversation Memory Manager
-Location: second/utils/memory_manager.py
+Location: tcs_poc/utils/memory_manager.py
 Manages conversation history per session
 SAVES IT TO:
 Folder: ./memory/

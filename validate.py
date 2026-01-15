@@ -1,6 +1,6 @@
 """
 Validation script
-Location: second/validate.py
+Location: tcs_poc/validate.py
 No direct file output
 
 Note: Validation results printed to console only

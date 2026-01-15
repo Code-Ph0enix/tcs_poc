@@ -10,7 +10,7 @@ Purpose: This file contains the code for the "Query Interface" tab.
          - View source documents used to generate the answer
          - Give feedback on responses
 
-Location: second/components/query_interface.py
+Location: tcs_poc/components/query_interface.py
 
 Called by: streamlit_app.py when "Query Interface" tab is selected
 

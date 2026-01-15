@@ -1,6 +1,6 @@
 """
 Test RAG Agent
-Location: second/test_rag.py
+Location: tcs_poc/test_rag.py
 No direct file output
 
 Note: Only prints results to console, retrieves from ChromaDB

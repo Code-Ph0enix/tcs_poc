@@ -1,6 +1,6 @@
 # """
 # Query Demo Interface with RAG Agent
-# Location: second/query_demo.py
+# Location: tcs_poc/query_demo.py
 # """
 
 # import streamlit as st
@@ -230,7 +230,7 @@
 
 """
 Multi-Agent Demo Interface
-Location: second/demo_multi_agent.py
+Location: tcs_poc/demo_multi_agent.py
 Shows both Knowledge Agent (RAG) and Marketing Agent
 """
 

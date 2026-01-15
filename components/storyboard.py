@@ -11,7 +11,7 @@ Purpose: This file creates the "Story Demo" tab that shows how the multi-agent
          - How memory, cache, and observability work together
          - Visual agent activation and data flow
 
-Location: second/components/storyboard.py
+Location: tcs_poc/components/storyboard.py
 
 Called by: streamlit_app.py when "Story Demo" tab is selected
 
