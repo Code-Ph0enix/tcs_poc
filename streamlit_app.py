@@ -233,7 +233,7 @@ def check_and_build_chromadb():
             
             for idx, txt_file in enumerate(txt_files):
                 st.text(f"Processing: {txt_file.name}")
-                chunks = processor.process_text_file(txt_file)
+                chunks = processor.process_pdf(txt_file)
                 
                 # Add to ChromaDB
                 if chunks:
