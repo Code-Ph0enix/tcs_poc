@@ -1,14 +1,39 @@
-crewai==0.86.0
-crewai-tools==0.12.1
-langchain==0.3.13
-langchain-groq==0.2.1
-langchain-community==0.3.13
-langgraph==0.2.58
-chromadb==0.5.23
-sentence-transformers==3.3.1
-pypdf==5.1.0
-python-dotenv==1.0.1
-fastapi==0.115.6
-uvicorn==0.34.0
-streamlit==1.41.1
-pydantic==2.10.4
+crewai
+crewai-tools
+langchain
+langchain-groq
+langchain-community
+langgraph
+chromadb
+sentence-transformers
+pypdf
+python-dotenv
+fastapi
+uvicorn
+streamlit
+pydantic
+pandas
+plotly
+python-dateutil
+watchdog
+
+
+
+# crewai==0.86.0
+# crewai-tools==0.12.1
+# langchain==0.3.13
+# langchain-groq==0.2.1
+# langchain-community==0.3.13
+# langgraph==0.2.58
+# chromadb==0.5.23
+# sentence-transformers==3.3.1
+# pypdf==5.1.0
+# python-dotenv==1.0.1
+# fastapi==0.115.6
+# uvicorn==0.34.0
+# streamlit==1.41.1
+# pydantic==2.10.4
+# pandas
+# plotly
+# python-dateutil
+# watchdog
