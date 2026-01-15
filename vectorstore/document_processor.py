@@ -50,39 +50,62 @@ class DocumentProcessor:
     - Deduplication: Avoiding duplicate content
     """
     
+    # def __init__(self):
+    #     """
+    #     Initialize document processor.
+        
+    #     Loads:
+    #     - ChromaDB client (connects to existing database)
+    #     - Embedding model (for converting text to vectors)
+    #     - Collections (banking and marketing)
+    #     """
+    #     # Print initialization message
+    #     print("Initializing Document Processor...")
+        
+    #     # Connect to an existing ChromaDB instance using the persistent directory
+    #     self.client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
+        
+    #     # Load the sentence transformer embedding model
+    #     print(f"Loading embedding model: {EMBEDDING_MODEL}")
+    #     self.embedding_model = SentenceTransformer(EMBEDDING_MODEL)
+        
+    #     # Get the banking collection from ChromaDB, using a custom embedding function
+    #     self.banking_collection = self.client.get_collection(
+    #         name=BANKING_COLLECTION,
+    #         embedding_function=self._create_embedding_function()
+    #     )
+        
+    #     # Get the marketing collection from ChromaDB, using a custom embedding function
+    #     self.marketing_collection = self.client.get_collection(
+    #         name=MARKETING_COLLECTION,
+    #         embedding_function=self._create_embedding_function()
+    #     )
+        
+    #     # Print ready message
+    #     print("Document Processor ready!")
     def __init__(self):
         """
         Initialize document processor.
-        
         Loads:
         - ChromaDB client (connects to existing database)
         - Embedding model (for converting text to vectors)
         - Collections (banking and marketing)
         """
         # Print initialization message
-        print("Initializing Document Processor...")
-        
+        print("📄 Initializing Document Processor...")
+    
         # Connect to an existing ChromaDB instance using the persistent directory
         self.client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
-        
+    
         # Load the sentence transformer embedding model
         print(f"Loading embedding model: {EMBEDDING_MODEL}")
         self.embedding_model = SentenceTransformer(EMBEDDING_MODEL)
-        
-        # Get the banking collection from ChromaDB, using a custom embedding function
-        self.banking_collection = self.client.get_collection(
-            name=BANKING_COLLECTION,
-            embedding_function=self._create_embedding_function()
-        )
-        
-        # Get the marketing collection from ChromaDB, using a custom embedding function
-        self.marketing_collection = self.client.get_collection(
-            name=MARKETING_COLLECTION,
-            embedding_function=self._create_embedding_function()
-        )
-        
-        # Print ready message
-        print("Document Processor ready!")
+    
+        # DON'T try to get collections in __init__ - they might not exist yet!
+        # Collections will be accessed when needed in process_pdf() method
+    
+        print("✅ Document Processor ready!")
+
     
     
     def _create_embedding_function(self):
@@ -269,10 +292,21 @@ class DocumentProcessor:
             return 0
 
         # Select the appropriate collection based on collection_name
-        collection = (
-            self.banking_collection if collection_name == "banking" 
-            else self.marketing_collection
-        )
+        # collection = (
+        #     self.banking_collection if collection_name == "banking" 
+        #     else self.marketing_collection
+        # )
+        # Select the appropriate collection based on collection_name
+# Get collection dynamically (don't assume it exists in __init__)
+        try:
+            if collection_name == "banking":
+                collection = self.client.get_collection(name=BANKING_COLLECTION)
+            else:
+                collection = self.client.get_collection(name=MARKETING_COLLECTION)
+        except Exception as e:
+            print(f"❌ Collection '{collection_name}' not found: {e}")
+            return 0
+
         
         # Prepare lists to hold chunk IDs, texts, and metadata
         chunk_ids = []
