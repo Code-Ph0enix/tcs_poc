@@ -114,48 +114,148 @@ st.set_page_config(
 # AUTO-INITIALIZE CHROMADB (Streamlit Cloud Deployment Support)
 # ==============================================================================
 
+# def check_and_build_chromadb():
+#     """
+#     Check if ChromaDB exists. If not, build it automatically.
+#     This ensures Streamlit Cloud deployment works without manual setup.
+#     """
+#     from pathlib import Path
+#     import subprocess
+    
+#     chroma_path = Path(CHROMA_PERSIST_DIR)
+    
+#     # Check if database exists and has content
+#     if chroma_path.exists() and any(chroma_path.iterdir()):
+#         return True  # Database ready
+    
+#     # Database missing - build it
+#     st.warning("⚠️ ChromaDB not found. Building vector database for first time...")
+#     st.info("📚 This takes ~2 minutes on first deployment. Please wait...")
+    
+#     try:
+#         with st.spinner("Indexing ICICI documents... (2 minutes)"):
+#             # Run the indexing script
+#             result = subprocess.run(
+#                 ["python", "vectorstore/setup_chroma.py"],
+#                 capture_output=True,
+#                 text=True,
+#                 timeout=300  # 5 minute timeout
+#             )
+            
+#             if result.returncode == 0:
+#                 st.success("✅ ChromaDB initialized successfully!")
+#                 return True
+#             else:
+#                 st.error(f"❌ Build failed: {result.stderr}")
+#                 st.code(result.stdout, language="text")
+#                 return False
+                
+#     except subprocess.TimeoutExpired:
+#         st.error("❌ Build timeout (>5 minutes). Check corpus size.")
+#         return False
+#     except Exception as e:
+#         st.error(f"❌ Build error: {e}")
+#         return False
 def check_and_build_chromadb():
     """
     Check if ChromaDB exists. If not, build it automatically.
     This ensures Streamlit Cloud deployment works without manual setup.
     """
     from pathlib import Path
-    import subprocess
     
     chroma_path = Path(CHROMA_PERSIST_DIR)
     
     # Check if database exists and has content
-    if chroma_path.exists() and any(chroma_path.iterdir()):
-        return True  # Database ready
+    if chroma_path.exists():
+        try:
+            files = list(chroma_path.glob('**/*'))
+            if len(files) > 5:  # Need at least a few DB files
+                return True  # Database exists
+        except:
+            pass
     
-    # Database missing - build it
-    st.warning("⚠️ ChromaDB not found. Building vector database for first time...")
-    st.info("📚 This takes ~2 minutes on first deployment. Please wait...")
+    # Database missing - build it NOW
+    st.warning("⚠️ ChromaDB not found. Building vector database...")
+    st.info("📚 First-time setup: Indexing documents (~2 minutes)")
     
     try:
-        with st.spinner("Indexing ICICI documents... (2 minutes)"):
-            # Run the indexing script
-            result = subprocess.run(
-                ["python", "vectorstore/setup_chroma.py"],
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minute timeout
+        with st.spinner("Building ChromaDB... Please wait..."):
+            
+            # Import required modules directly
+            import sys
+            import chromadb
+            from chromadb.utils import embedding_functions
+            
+            # Add vectorstore to path
+            vectorstore_path = Path(__file__).parent / "vectorstore"
+            if str(vectorstore_path) not in sys.path:
+                sys.path.insert(0, str(vectorstore_path))
+            
+            # Import document processor
+            from vectorstore.document_processor import DocumentProcessor
+            
+            # Create ChromaDB client
+            client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
+            
+            # Create embedding function
+            embedding_func = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name=EMBEDDING_MODEL
             )
             
-            if result.returncode == 0:
-                st.success("✅ ChromaDB initialized successfully!")
-                return True
-            else:
-                st.error(f"❌ Build failed: {result.stderr}")
-                st.code(result.stdout, language="text")
+            # Delete collection if exists (fresh start)
+            try:
+                client.delete_collection(name=BANKING_COLLECTION)
+            except:
+                pass
+            
+            # Create new collection
+            collection = client.create_collection(
+                name=BANKING_COLLECTION,
+                embedding_function=embedding_func,
+                metadata={"description": "ICICI HFC Banking Products"}
+            )
+            
+            # Process documents
+            processor = DocumentProcessor()
+            corpus_dir = Path(__file__).parent / "corpus"
+            
+            # Find all text files
+            txt_files = list(corpus_dir.glob("*.txt"))
+            
+            if not txt_files:
+                st.error(f"❌ No .txt files found in {corpus_dir}!")
+                st.info(f"Expected path: {corpus_dir.absolute()}")
                 return False
+            
+            # Process each file with progress
+            total_chunks = 0
+            progress_bar = st.progress(0)
+            
+            for idx, txt_file in enumerate(txt_files):
+                st.text(f"Processing: {txt_file.name}")
+                chunks = processor.process_text_file(txt_file)
                 
-    except subprocess.TimeoutExpired:
-        st.error("❌ Build timeout (>5 minutes). Check corpus size.")
-        return False
+                # Add to ChromaDB
+                if chunks:
+                    collection.add(
+                        documents=[c['content'] for c in chunks],
+                        metadatas=[c['metadata'] for c in chunks],
+                        ids=[c['id'] for c in chunks]
+                    )
+                    total_chunks += len(chunks)
+                
+                # Update progress
+                progress_bar.progress((idx + 1) / len(txt_files))
+            
+            st.success(f"✅ ChromaDB built! {total_chunks} chunks from {len(txt_files)} files")
+            return True
+                
     except Exception as e:
-        st.error(f"❌ Build error: {e}")
+        st.error(f"❌ Build error: {str(e)}")
+        import traceback
+        st.code(traceback.format_exc(), language="python")
         return False
+
 
 # Run ChromaDB check ONCE per session
 if 'chromadb_ready' not in st.session_state:
