@@ -10,7 +10,7 @@
 # ==============================================================================
 
 # Config file with API keys (CRITICAL - Never commit!)
-config.py
+# config.py
 
 # Environment files
 .env
