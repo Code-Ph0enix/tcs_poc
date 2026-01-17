@@ -310,6 +310,15 @@ if 'story_step' not in st.session_state:
     # Track which step of the story we're on
     st.session_state.story_step = 0
     # Integer starting at 0 (first step)
+    
+    
+# ⬇️⬇️⬇️ ADDED THIS NEW BLOCK HERE ⬇️⬇️⬇️ 
+if 'selected_query' not in st.session_state:
+    # Initialize selected query for the query interface
+    # This prevents AttributeError when query_interface.py tries to access it
+    st.session_state.selected_query = ''
+    # Empty string as default value (no query selected initially)
+# ⬆️⬆️⬆️ END OF NEW CODE ⬆️⬆️⬆️
 
 # ==============================================================================
 # SECTION 6: CUSTOM CSS STYLING
