@@ -125,47 +125,120 @@ class DocumentProcessor:
         return embed_function # Return the embedding function
     
     
-    def extract_text_from_pdf(self, pdf_path: str) -> str:
-        """
-        Extract all text from a PDF file.
+    # def extract_text_from_pdf(self, pdf_path: str) -> str:
+    #     """
+    #     Extract all text from a PDF file.
         
-        Args:
-            pdf_path (str): Path to PDF file
+    #     Args:
+    #         pdf_path (str): Path to PDF file
             
-        Returns:
-            str: Extracted text from all pages
+    #     Returns:
+    #         str: Extracted text from all pages
             
-        How it works:
-        - Opens PDF using pypdf
-        - Iterates through each page
-        - Extracts text using built-in parser
-        - Combines all pages into single string
-        """
-        # Print which PDF is being read
-        print(f"Reading PDF: {pdf_path}")
+    #     How it works:
+    #     - Opens PDF using pypdf
+    #     - Iterates through each page
+    #     - Extracts text using built-in parser
+    #     - Combines all pages into single string
+    #     """
+    #     # Print which PDF is being read
+    #     print(f"Reading PDF: {pdf_path}")
         
-        try:
-            # Create a PdfReader object for the given PDF path
-            reader = PdfReader(pdf_path)
-            text = "" # Initialize an empty string to hold all text
+    #     try:
+    #         # Create a PdfReader object for the given PDF path
+    #         reader = PdfReader(pdf_path)
+    #         text = "" # Initialize an empty string to hold all text
             
-            # Loop through each page in the PDF
-            for page_num, page in enumerate(reader.pages, start=1):
-                page_text = page.extract_text() # Extract text from the page
-                text += page_text + "\n" # Add the text and a newline
+    #         # Loop through each page in the PDF
+    #         for page_num, page in enumerate(reader.pages, start=1):
+    #             page_text = page.extract_text() # Extract text from the page
+    #             text += page_text + "\n" # Add the text and a newline
                 
-                # Print progress every 10 pages
-                if page_num % 10 == 0:
-                    print(f"   Processed {page_num}/{len(reader.pages)} pages")
+    #             # Print progress every 10 pages
+    #             if page_num % 10 == 0:
+    #                 print(f"   Processed {page_num}/{len(reader.pages)} pages")
             
-            # Print summary of extraction
-            print(f"Extracted {len(text)} characters from {len(reader.pages)} pages")
-            return text # Return the combined text
+    #         # Print summary of extraction
+    #         print(f"Extracted {len(text)} characters from {len(reader.pages)} pages")
+    #         return text # Return the combined text
             
+    #     except Exception as e:
+    #         # Print error if PDF reading fails
+    #         print(f"Error reading PDF: {e}")
+    #         return "" # Return empty string on failure
+    def extract_text_from_file(self, file_path: str) -> str:
+        """
+        Extract all text from a TXT or PDF file.
+    
+        Args:
+            file_path (str): Path to TXT or PDF file
+    
+        Returns:
+            str: Extracted text content
+    
+        How it works:
+        - Detects file type by extension (.txt or .pdf)
+        - For TXT: Reads file directly with UTF-8 encoding
+        - For PDF: Uses pypdf to extract text from all pages
+        - Returns combined text as single string
+        """
+        # Print which file is being read
+        print(f"📖 Reading file: {file_path}")
+
+        try:
+            # Convert to Path object for easier file handling
+            file_path_obj = Path(file_path)
+
+            # Get file extension (lowercase for case-insensitive comparison)
+            file_extension = file_path_obj.suffix.lower()
+
+            # ============================================================
+            # CASE 1: Text file (.txt)
+            # ============================================================
+            if file_extension == '.txt':
+                # Open the text file with UTF-8 encoding
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    # Read entire file content
+                    text = f.read()
+
+                # Print summary of extraction
+                print(f"✅ Extracted {len(text)} characters from TXT file")
+                return text
+
+            # ============================================================
+            # CASE 2: PDF file (.pdf)
+            # ============================================================
+            elif file_extension == '.pdf':
+                # Create a PdfReader object for the given PDF path
+                reader = PdfReader(file_path)
+                text = "" # Initialize an empty string to hold all text
+
+                # Loop through each page in the PDF
+                for page_num, page in enumerate(reader.pages, start=1):
+                    page_text = page.extract_text() # Extract text from the page
+                    text += page_text + "\n" # Add the text and a newline
+
+                    # Print progress every 10 pages
+                    if page_num % 10 == 0:
+                        print(f"  📄 Processed {page_num}/{len(reader.pages)} pages")
+
+                # Print summary of extraction
+                print(f"✅ Extracted {len(text)} characters from {len(reader.pages)} pages")
+                return text
+
+            # ============================================================
+            # CASE 3: Unsupported file type
+            # ============================================================
+            else:
+                print(f"❌ Unsupported file type: {file_extension}")
+                print(f"   Supported types: .txt, .pdf")
+                return ""
+
         except Exception as e:
-            # Print error if PDF reading fails
-            print(f"Error reading PDF: {e}")
+            # Print error if file reading fails
+            print(f"❌ Error reading file: {e}")
             return "" # Return empty string on failure
+
     
     
     def chunk_text(
@@ -249,36 +322,60 @@ class DocumentProcessor:
         return f"{clean_source}_{index}_{content_hash}"
     
     
+    # def process_pdf(
+    #     self, 
+    #     pdf_path: str, 
+    #     collection_name: str = "banking",
+    #     metadata: Dict = None
+    # ) -> int:
+    #     """
+    #     Complete pipeline: PDF → chunks → ChromaDB
+        
+    #     Args:
+    #         pdf_path (str): Path to PDF file
+    #         collection_name (str): "banking" or "marketing"
+    #         metadata (Dict): Additional metadata (e.g., {"bank": "ICICI"})
+            
+    #     Returns:
+    #         int: Number of chunks added
+            
+    #     Pipeline:
+    #     1. Extract text from PDF
+    #     2. Chunk the text
+    #     3. Generate embeddings (handled by ChromaDB)
+    #     4. Store with metadata
+    #     """
     def process_pdf(
-        self, 
-        pdf_path: str, 
+        self,
+        pdf_path: str,
         collection_name: str = "banking",
         metadata: Dict = None
     ) -> int:
         """
-        Complete pipeline: PDF → chunks → ChromaDB
-        
+        Complete pipeline: File (TXT/PDF) → chunks → ChromaDB
+    
         Args:
-            pdf_path (str): Path to PDF file
+            pdf_path (str): Path to TXT or PDF file
             collection_name (str): "banking" or "marketing"
             metadata (Dict): Additional metadata (e.g., {"bank": "ICICI"})
-            
+    
         Returns:
             int: Number of chunks added
-            
+    
         Pipeline:
-        1. Extract text from PDF
-        2. Chunk the text
-        3. Generate embeddings (handled by ChromaDB)
-        4. Store with metadata
+            1. Extract text from file (TXT or PDF)
+            2. Chunk the text
+            3. Generate embeddings (handled by ChromaDB)
+            4. Store with metadata
         """
+
         # Print a separator and processing message
         print(f"\n{'='*60}")
         print(f"Processing: {pdf_path}")
         print(f"{'='*60}\n")
         
         # Step 1: Extract text from the PDF
-        text = self.extract_text_from_pdf(pdf_path)
+        text = self.extract_text_from_file(pdf_path)
         if not text:
             # If no text was extracted, skip processing
             print(" No text extracted. Skipping.")

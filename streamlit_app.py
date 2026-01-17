@@ -227,25 +227,46 @@ def check_and_build_chromadb():
                 st.info(f"Expected path: {corpus_dir.absolute()}")
                 return False
             
+            # # Process each file with progress
+            # total_chunks = 0
+            # progress_bar = st.progress(0)
+            
+            # for idx, txt_file in enumerate(txt_files):
+            #     st.text(f"Processing: {txt_file.name}")
+            #     chunks = processor.process_pdf(txt_file)
+                
+            #     # Add to ChromaDB
+            #     if chunks:
+            #         collection.add(
+            #             documents=[c['content'] for c in chunks],
+            #             metadatas=[c['metadata'] for c in chunks],
+            #             ids=[c['id'] for c in chunks]
+            #         )
+            #         total_chunks += len(chunks)
+                
+            #     # Update progress
+            #     progress_bar.progress((idx + 1) / len(txt_files))
             # Process each file with progress
             total_chunks = 0
             progress_bar = st.progress(0)
-            
+
             for idx, txt_file in enumerate(txt_files):
                 st.text(f"Processing: {txt_file.name}")
-                chunks = processor.process_pdf(txt_file)
-                
-                # Add to ChromaDB
-                if chunks:
-                    collection.add(
-                        documents=[c['content'] for c in chunks],
-                        metadatas=[c['metadata'] for c in chunks],
-                        ids=[c['id'] for c in chunks]
-                    )
-                    total_chunks += len(chunks)
-                
+    
+                # process_pdf() returns the NUMBER of chunks added (int)
+                # It already adds chunks to ChromaDB internally
+                num_chunks = processor.process_pdf(
+                    pdf_path=str(txt_file),
+                    collection_name=BANKING_COLLECTION,
+                    metadata={'bank': 'ICICI HFC', 'source_file': txt_file.name}
+                )
+    
+                # Add the count to total
+                total_chunks += num_chunks
+    
                 # Update progress
                 progress_bar.progress((idx + 1) / len(txt_files))
+
             
             st.success(f"✅ ChromaDB built! {total_chunks} chunks from {len(txt_files)} files")
             return True
@@ -310,6 +331,15 @@ if 'story_step' not in st.session_state:
     # Track which step of the story we're on
     st.session_state.story_step = 0
     # Integer starting at 0 (first step)
+    
+    
+# ⬇️⬇️⬇️ ADDED THIS NEW BLOCK HERE ⬇️⬇️⬇️ 
+if 'selected_query' not in st.session_state:
+    # Initialize selected query for the query interface
+    # This prevents AttributeError when query_interface.py tries to access it
+    st.session_state.selected_query = ''
+    # Empty string as default value (no query selected initially)
+# ⬆️⬆️⬆️ END OF NEW CODE ⬆️⬆️⬆️
 
 # ==============================================================================
 # SECTION 6: CUSTOM CSS STYLING
